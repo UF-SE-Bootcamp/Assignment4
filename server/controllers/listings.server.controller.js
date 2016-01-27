@@ -19,7 +19,7 @@ exports.create = function(req, res) {
   var listing = new Listing(req.body);
 
   /* save the coordinates (located in req.results if there is an address property) */
-  if(req.results) {
+  if(req.results && req.results.address) {
     listing.coordinates = {
       latitude: req.results.lat,
       longitude: req.results.lng
@@ -48,20 +48,20 @@ exports.update = function(req, res) {
   var listing = req.listing;
 
   /* Replace the article's properties with the new properties found in req.body */
+  listing.code = req.body.code;
+  listing.name = req.body.name;
+  listing.address = req.body.address;
   /* save the coordinates (located in req.results if there is an address property) */
-  /* Save the article */
-
-  listing = new Listing(req.body);
-
-  if(req.results) {
+  if (req.results && req.results.address) {
     listing.coordinates = {
       latitude: req.results.lat,
       longitude: req.results.lng
     };
   }
 
+  /* Save the article */
   listing.save(function(err) {
-    if(err) {
+    if (err) {
       console.log(err);
       res.status(400).send(err);
     } else {
@@ -75,7 +75,7 @@ exports.delete = function(req, res) {
   var listing = req.listing;
 
   /* Remove the article */
-  listing.remove(function(err){
+  Listing.remove({ code: listing.code }, function(err) {
     if (err) {
       console.log(err);
       res.status(400).send(err);
@@ -85,19 +85,15 @@ exports.delete = function(req, res) {
   });
 };
 
-/* Retreive all the directory listings, sorted alphabetically by listing code */
+/* Retrieve all the directory listings, sorted alphabetically by listing code */
 exports.list = function(req, res) {
-  /* Your code here */
-  var listings = req.listings;
-
-  Listing.find({}).sort({code: 1}).exec(function( err, listings) {
-    if (err) {
-      console.log(err);
-      res.status(400).send(err);
-    } else {
-      res.json(listings);
-    }
-  });
+  Listing.find({}).sort({ code: 1 }).exec(function(err, listings) {
+      if(err) {
+        res.status(400).send(err);
+      } else {
+        res.json(listings);
+      }
+    });
 };
 
 /*
